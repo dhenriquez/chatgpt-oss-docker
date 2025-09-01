@@ -21,6 +21,12 @@ services:
       - ollama
     environment:
       - OLLAMA_HOST=http://ollama:11434
-
+  web:
+    image: nginx:alpine
+    container_name: nginx-web
+    ports:
+      - "7676:80"
+    volumes:
+      - ./chatbot:/usr/share/nginx/html:ro
 volumes:
   ollama-data:
