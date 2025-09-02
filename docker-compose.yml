@@ -6,6 +6,13 @@ services:
       - "11434:11434"
     volumes:
       - ollama-data:/root/ .ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     entrypoint: >
       sh -c "ollama serve & sleep 5 && ollama pull gemma:2b && ollama pull llama3:8b && ollama pull deepseek-r1:1.5b && ollama pull gpt-oss:20b && tail -f /dev/null"
   
@@ -25,8 +32,11 @@ services:
     image: nginx:alpine
     container_name: nginx-web
     ports:
-      - "7676:80"
+      - "8181:80"
     volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./chatbot:/usr/share/nginx/html:ro
+    depends_on:
+      - fastapi
 volumes:
   ollama-data:

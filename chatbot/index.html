@@ -1,181 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatbot DRTE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilos personalizados si los necesitas, aunque Tailwind es muy completo */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
         }
+        50% {
+          opacity: 0.2;
+        }
+      }
+      .blinking {
+        animation: blink 1.2s infinite;
+      }
     </style>
-</head>
-<body class="bg-gray-50 flex items-center justify-center h-screen">
+  </head>
+  <body class="bg-gray-50 flex items-center justify-center h-screen">
+    <div
+      class="flex flex-col w-full max-w-md h-[80vh] bg-white rounded-2xl shadow-xl overflow-hidden"
+    >
+      <div
+        class="bg-blue-600 text-white p-4 flex flex-col sm:flex-row items-center justify-between rounded-t-2xl"
+      >
+        <h1 class="text-xl font-bold mb-2 sm:mb-0">ChatBot DRTE</h1>
+        <select
+          id="model-select"
+          class="bg-blue-700 text-white p-1 rounded-full text-sm focus:outline-none"
+        >
+          <option value="llama3">Llama3</option>
+          <option value="deepseek">Deepseek</option>
+          <option value="gpt-oss-20b">GPT-OSS</option>
+          <option value="gemma">Gemma</option>
+        </select>
+      </div>
 
-    <div class="flex flex-col w-full max-w-md h-[80vh] bg-white rounded-2xl shadow-xl overflow-hidden">
-        
-        <div class="bg-blue-600 text-white p-4 flex flex-col sm:flex-row items-center justify-between rounded-t-2xl">
-            <h1 class="text-xl font-bold mb-2 sm:mb-0">ChatBot DRTE</h1>
-            <select id="model-select" class="bg-blue-700 text-white p-1 rounded-full text-sm focus:outline-none">
-                <option value="llama3">Llama3</option>
-                <option value="deepseek">Deepseek</option>
-                <option value="gpt-oss-20b">GPT-OSS</option>
-                <option value="gemma">Gemma</option>
-            </select>
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
+        <div class="flex justify-start">
+          <div class="bg-gray-200 text-gray-800 p-3 rounded-xl max-w-[80%]">
+            ¡Hola! Soy un asistente virtual. Estoy conectado a un modelo de IA.
+            Elige un modelo para empezar a chatear.
+          </div>
         </div>
+      </div>
 
-        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
-            <div class="flex justify-start">
-                <div class="bg-gray-200 text-gray-800 p-3 rounded-xl max-w-[80%]">
-                    ¡Hola! Soy un asistente virtual. Estoy conectado a un modelo de IA. Elige un modelo para empezar a chatear.
-                </div>
-            </div>
-        </div>
-
-        <div class="p-4 border-t border-gray-200 flex items-center">
-            <input 
-                type="text" 
-                id="user-input" 
-                class="flex-1 border-2 border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:border-blue-500 transition-colors" 
-                placeholder="Escribe un mensaje..."
-            >
-            <button 
-                id="send-btn" 
-                class="ml-2 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors"
-                aria-label="Enviar mensaje"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
-        </div>
+      <div class="p-4 border-t border-gray-200 flex items-center">
+        <input
+          type="text"
+          id="user-input"
+          class="flex-1 border-2 border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:border-blue-500 transition-colors"
+          placeholder="Escribe un mensaje..."
+        />
+        <button
+          id="send-btn"
+          class="ml-2 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors"
+          aria-label="Enviar mensaje"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <script>
-        const chatMessages = document.getElementById('chat-messages');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const modelSelect = document.getElementById('model-select');
-        const BASE_URL = 'http://localhost:8000/chat';
+      const chatMessages = document.getElementById("chat-messages");
+      const userInput = document.getElementById("user-input");
+      const sendBtn = document.getElementById("send-btn");
+      const modelSelect = document.getElementById("model-select");
+      const BASE_URL = "http://localhost:8000/chat";
 
-        // Función para procesar el texto y agregar etiquetas HTML
-        function processMessageText(text) {
-            // Reemplazar **texto** por <strong>texto</strong>
-            let processedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            return processedText;
+      function processMessageText(text) {
+        let processedText = text.replace(
+          /\*\*(.*?)\*\*/g,
+          "<strong>$1</strong>"
+        );
+        return processedText;
+      }
+
+      function replaceThinkTag(text) {
+        return text.replace(/<think\s*\/?>/g, "🧠");
+      }
+
+      function addMessage(text, sender, id = null, additionalText = null) {
+        const messageContainer = document.createElement("div");
+        messageContainer.className = `flex ${
+          sender === "user" ? "justify-end" : "justify-start"
+        }`;
+        if (id) {
+          messageContainer.id = id;
+        }
+        const messageBubble = document.createElement("div");
+        messageBubble.className = `p-3 rounded-xl max-w-[80%] ${
+          sender === "user"
+            ? "bg-blue-500 text-white"
+            : "bg-gray-200 text-gray-800"
+        }`; // Agrega la clase 'blinking' solo para el mensaje de "espera"
+        if (id === "typing-indicator") {
+          messageBubble.classList.add("blinking");
         }
 
-        // Función para reemplazar el tag <think> por un ícono
-        function replaceThinkTag(text) {
-            // Un SVG simple de un cerebro
-            const brainIconSVG = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2c-2.458 0-4.8 1.137-6.52 3.033-.186.205-.355.42-.51.644a10.9 10.9 0 00-.916 2.016 11.23 11.23 0 00-.51 2.228A10.9 10.9 0 002 12c0 2.458 1.137 4.8 3.033 6.52.205.186.42.355.644.51a10.9 10.9 0 002.016.916 11.23 11.23 0 002.228.51A10.9 10.9 0 0012 22c2.458 0 4.8-1.137 6.52-3.033.186-.205.355-.42-.51-.644a10.9 10.9 0 00.916-2.016 11.23 11.23 0 00.51-2.228A10.9 10.9 0 0022 12c0-2.458-1.137-4.8-3.033-6.52-.205-.186-.42-.355-.644-.51a10.9 10.9 0 00-2.016-.916 11.23 11.23 0 00-2.228-.51A10.9 10.9 0 0012 2zM12 12c-2.458 0-4.8 1.137-6.52 3.033-.186.205-.355.42-.51.644a10.9 10.9 0 00-.916 2.016 11.23 11.23 0 00-.51 2.228A10.9 10.9 0 002 22M12 2c2.458 0 4.8 1.137 6.52 3.033.186.205.355.42.51.644a10.9 10.9 0 00.916 2.016 11.23 11.23 0 00.51 2.228A10.9 10.9 0 0022 12M12 12c2.458 0 4.8-1.137 6.52-3.033.186-.205.355-.42-.51-.644a10.9 10.9 0 00-.916-2.016 11.23 11.23 0 00-.51-2.228A10.9 10.9 0 0012 2"/>
-                </svg>
-            `;
-            return text.replace(/<think\s*\/?>/g, '🧠');
+        let processedText = text;
+        if (sender === "bot") {
+          processedText = processMessageText(processedText);
+          processedText = replaceThinkTag(processedText);
         }
 
-        // Función para agregar un mensaje al chat (con ID para el indicador de carga)
-        function addMessage(text, sender, id = null) {
-            const messageContainer = document.createElement('div');
-            messageContainer.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
-            if (id) {
-                messageContainer.id = id;
-            }
-            
-            const messageBubble = document.createElement('div');
-            messageBubble.className = `p-3 rounded-xl max-w-[80%] ${sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`;
-            
-            // Procesar el texto antes de agregarlo
-            let processedText = text;
-            if (sender === 'bot') {
-                processedText = processMessageText(processedText);
-                processedText = replaceThinkTag(processedText);
-            }
-            
-            messageBubble.innerHTML = processedText;
-            
-            messageContainer.appendChild(messageBubble);
-            chatMessages.appendChild(messageContainer);
-            
-            // Desplazarse al final de los mensajes
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        messageBubble.innerHTML = `<div>${processedText}</div>`;
+        if (additionalText) {
+          const additionalDiv = document.createElement("div");
+          additionalDiv.innerHTML = additionalText;
+          additionalDiv.className = "text-xs text-right mt-1 opacity-75";
+          messageBubble.appendChild(additionalDiv);
         }
 
-        // Lógica para comunicarse con la API
-        async function getBotResponse(message, model) {
-            let apiUrl = '';
-            let requestBody = {};
-            
-            if (model === 'gemma') {
-                apiUrl = `${BASE_URL}`;
-                requestBody = { prompt: message, model: 'gemma:2b' };
-            } else {
-                apiUrl = `${BASE_URL}/${model}`;
-                requestBody = { prompt: message };
-            }
+        messageContainer.appendChild(messageBubble);
+        chatMessages.appendChild(messageContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
 
-            try {
-                // Agregar un mensaje de "escribiendo"
-                const typingId = 'typing-indicator';
-                addMessage('...', 'bot', typingId);
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                // Remover el mensaje de "escribiendo"
-                const typingIndicator = document.getElementById(typingId);
-                if (typingIndicator) {
-                    typingIndicator.remove();
-                }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.response;
-
-            } catch (error) {
-                console.error('Error al obtener la respuesta del bot:', error);
-                const typingIndicator = document.getElementById('typing-indicator');
-                if (typingIndicator) {
-                    typingIndicator.remove();
-                }
-                return 'Hubo un error al conectar con la API. Por favor, asegúrate de que el servidor esté en funcionamiento.';
-            }
-        }
-        
-        // Manejar el envío de mensajes de forma asíncrona
-        async function handleSendMessage() {
-            const userText = userInput.value.trim();
-            if (userText !== '') {
-                addMessage(userText, 'user');
-                userInput.value = '';
-
-                // Obtener el modelo seleccionado
-                const selectedModel = modelSelect.value;
-                const botResponse = await getBotResponse(userText, selectedModel);
-                addMessage(botResponse, 'bot');
-            }
+      async function getBotResponse(message, model) {
+        let apiUrl = "";
+        let requestBody = {};
+        if (model === "gemma") {
+          apiUrl = `${BASE_URL}`;
+          requestBody = { prompt: message, model: "gemma:2b" };
+        } else {
+          apiUrl = `${BASE_URL}/${model}`;
+          requestBody = { prompt: message };
         }
 
-        // Asignar eventos a los botones y a la tecla "Enter"
-        sendBtn.addEventListener('click', handleSendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleSendMessage();
-            }
-        });
+        const typingId = "typing-indicator"; // Mensaje de espera con el modelo seleccionado
+        addMessage(`Pensando con ${model}... 🧠`, "bot", typingId);
+        const startTime = performance.now();
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          });
+          const endTime = performance.now();
+          const elapsedTime = (endTime - startTime) / 1000;
+          const typingIndicator = document.getElementById(typingId);
+          if (typingIndicator) {
+            typingIndicator.remove();
+          }
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json(); // Mensaje de tiempo con el modelo y el tiempo de respuesta
+          const timeMessage = `<span class="completioninfo completion_complete">Modelo: ${model} | Tiempo de respuesta: ${elapsedTime.toFixed(
+            2
+          )}s</span>`;
+          return { response: data.response, time: timeMessage };
+        } catch (error) {
+          console.error("Error al obtener la respuesta del bot:", error);
+          const typingIndicator = document.getElementById("typing-indicator");
+          if (typingIndicator) {
+            typingIndicator.remove();
+          }
+          return {
+            response:
+              "Hubo un error al conectar con la API. Por favor, asegúrate de que el servidor esté en funcionamiento.",
+            time: null,
+          };
+        }
+      }
+
+      async function handleSendMessage() {
+        const userText = userInput.value.trim();
+        if (userText !== "") {
+          addMessage(userText, "user");
+          userInput.value = "";
+          const selectedModel = modelSelect.value;
+          const responseData = await getBotResponse(userText, selectedModel);
+          addMessage(responseData.response, "bot", null, responseData.time);
+        }
+      }
+
+      sendBtn.addEventListener("click", handleSendMessage);
+      userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          handleSendMessage();
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
