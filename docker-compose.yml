@@ -14,7 +14,7 @@ services:
               count: all
               capabilities: [gpu]
     entrypoint: >
-      sh -c "ollama serve & sleep 5 && ollama pull gemma:2b && ollama pull llama3:8b && ollama pull deepseek-r1:1.5b && ollama pull gpt-oss:20b && tail -f /dev/null"
+      sh -c "ollama serve & sleep 5 && ollama pull gemma:2b && ollama pull llama3:8b && ollama pull deepseek-r1:1.5b && ollama pull gpt-oss:20b && ollama pull tinyllama && tail -f /dev/null"
   
   fastapi:
     build:

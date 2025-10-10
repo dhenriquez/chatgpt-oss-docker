@@ -82,3 +82,35 @@ def chat_with_gptoss(request_data: PromptRequest):
         "model": "gpt-oss:20b",
         "response": response.message.content
     }
+
+@app.post("/chat/tinyllama")
+def chat_with_tinyllama(request_data: PromptRequest):
+    response: ChatResponse = chat(
+        model="tinyllama",
+        messages=[
+            {
+                "role": "user",
+                "content": request_data.prompt
+            }
+        ],
+    )
+    return {
+        "model": "tinyllama",
+        "response": response.message.content
+    }
+
+@app.post("/chat/fgce01")
+def chat_with_fgce01(request_data: PromptRequest):
+    response: ChatResponse = chat(
+        model="fgce01",
+        messages=[
+            {
+                "role": "user",
+                "content": request_data.prompt
+            }
+        ],
+    )
+    return {
+        "model": "fgce01",
+        "response": response.message.content
+    }
