@@ -1,6 +1,6 @@
 services:
   ollama:
-    image: ollama/ollama
+    image: ollama/ollama:0.20.6
     container_name: ollama-container
     ports:
       - "11434:11434"
@@ -12,10 +12,10 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [ gpu ]
     entrypoint: >
       sh -c "ollama serve & sleep 5 && ollama pull gemma:2b && ollama pull llama3:8b && ollama pull deepseek-r1:1.5b && ollama pull gpt-oss:20b && ollama pull tinyllama && tail -f /dev/null"
-  
+
   fastapi:
     build:
       context: .
